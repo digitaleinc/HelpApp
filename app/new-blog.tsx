@@ -1,43 +1,67 @@
 // app/(tabs)/new-blog.tsx
 
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 
 const NewBlogScreen = () => {
-    const { user, addBlogPost } = useContext(AuthContext);
+    const { userData, addBlogPost } = useContext(AuthContext);
     const router = useRouter();
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [author, setAuthor] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
 
     useEffect(() => {
-        if (user?.accountType !== 'Moderator' && user?.accountType !== 'Admin') {
+        if (userData?.accountType !== 'Moderator' && userData?.accountType !== 'Admin') {
             Alert.alert('Unauthorized', 'You do not have permission to access this screen');
             router.replace('/(tabs)/blog');
         }
-    }, [user, router]);
+    }, [userData, router]);
 
-    const handleSubmit = () => {
-        if (!title.trim() || !content.trim()) {
-            Alert.alert('Error', 'Please fill in all fields');
+    const handleSubmit = async () => {
+        if (!title.trim() || !content.trim() || !author.trim() || !imageUrl.trim()) {
+            Alert.alert('Error', 'Please fill in all fields.');
             return;
         }
-        addBlogPost(title, content);
-        Alert.alert('Success', 'Blog post created successfully');
-        router.back();
+
+        try {
+            await addBlogPost({
+                title,
+                content,
+                author,
+                imageUrl: imageUrl.trim(),
+            });
+            Alert.alert('Success', 'Blog post created successfully');
+            router.back();
+        } catch (error) {
+            Alert.alert('Error', 'Failed to create blog post. Please try again.');
+        }
     };
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>Create New Blog Post</Text>
+
+            {/* Title Input */}
             <TextInput
                 style={styles.input}
                 placeholder="Title"
                 value={title}
                 onChangeText={setTitle}
             />
+
+            {/* Author Input */}
+            <TextInput
+                style={styles.input}
+                placeholder="Author"
+                value={author}
+                onChangeText={setAuthor}
+            />
+
+            {/* Content Input */}
             <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Content"
@@ -46,8 +70,18 @@ const NewBlogScreen = () => {
                 multiline
                 numberOfLines={6}
             />
+
+            {/* Image URL Input */}
+            <TextInput
+                style={styles.input}
+                placeholder="Image URL"
+                value={imageUrl}
+                onChangeText={setImageUrl}
+            />
+
+            {/* Submit Button */}
             <Button title="Submit" onPress={handleSubmit} />
-        </View>
+        </ScrollView>
     );
 };
 
@@ -55,7 +89,7 @@ export default NewBlogScreen;
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         padding: 20,
         backgroundColor: '#fff',
     },
@@ -76,3 +110,4 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top',
     },
 });
+

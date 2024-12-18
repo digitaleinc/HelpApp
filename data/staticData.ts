@@ -42,9 +42,9 @@ export interface BlogPost {
     title: string;
     content: string;
     imageUrl?: string;
-    category?: string; // Category, e.g., "Top", "Popular"
-    author: string; // Author name
-    readTime: string; // e.g., "5 min"
+    category?: string;
+    author: string;
+    readTime: string;
 }
 
 export const blogPosts: BlogPost[] = [

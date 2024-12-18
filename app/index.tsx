@@ -6,12 +6,10 @@ function RootNavigator() {
     const { user } = useContext(AuthContext);
 
     if (user === null) {
-        console.log("Redirecting to Signin...");
         return <Redirect href="/signin" />;
     }
 
     if (user) {
-        console.log("Redirecting to Tickets...");
         return <Redirect href="/(tabs)/tickets" />;
     }
 

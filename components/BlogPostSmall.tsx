@@ -1,4 +1,4 @@
-// components/BlogPost.tsx
+// components/BlogPostSmall.tsx
 
 import React from "react";
 import {
@@ -6,47 +6,28 @@ import {
     Text,
     StyleSheet,
     Image,
-    TouchableOpacity,
-    useColorScheme,
 } from "react-native";
-import {Colors} from "@/constants/Colors";
-import { useFonts } from 'expo-font';
 
 export interface BlogPostType {
-    id: number;
     title: string;
     content: string;
-    imageUrl?: string; // Optional image URL
-    category: string;
+    imageUrl?: string;
     author: string;
     readTime: string;
-    layout: "horizontal" | "vertical"; // Determines layout
 }
 
 interface BlogPostProps {
     post: BlogPostType;
+    onPress?: () => void;
 }
 
 const BlogPostSmall: React.FC<BlogPostProps> = ({ post }) => {
-    useFonts({
-        'Raleway-Bold': require('@/assets/fonts/Raleway-Bold.ttf'),
-        'Raleway-SemiBold': require('@/assets/fonts/Raleway-SemiBold.ttf'),
-        'Raleway-Regular': require('@/assets/fonts/Raleway-Regular.ttf'),
-        // 'Roboto-Bold': require('./assets/fonts/Roboto-Bold.ttf'),
-    });
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === "dark";
-
     // Fallback image URL
     const fallbackImageUrl =
         "https://via.placeholder.com/600x400.png?text=No+Image+Available";
 
     return (
-        <TouchableOpacity
-            style={[
-                styles.verticalContainer,
-            ]}
-        >
+        <View style={styles.verticalContainer}>
             {/* Blog Image */}
             <Image
                 source={{ uri: post.imageUrl || fallbackImageUrl }}
@@ -54,15 +35,8 @@ const BlogPostSmall: React.FC<BlogPostProps> = ({ post }) => {
             />
 
             {/* Content */}
-            <View
-                style={styles.verticalText}
-            >
-                <Text
-                    style={[
-                        styles.title, styles.verticalTitle,
-                    ]}
-                    numberOfLines={2}
-                >
+            <View style={styles.verticalText}>
+                <Text style={styles.verticalTitle} numberOfLines={2}>
                     {post.title}
                 </Text>
                 <View style={styles.metadata}>
@@ -71,53 +45,44 @@ const BlogPostSmall: React.FC<BlogPostProps> = ({ post }) => {
                     <Text style={styles.readTime}>{post.readTime}</Text>
                 </View>
             </View>
-        </TouchableOpacity>
+        </View>
     );
 };
 
 export default BlogPostSmall;
 
 const styles = StyleSheet.create({
-    // Container for horizontal and vertical layouts
-
     verticalContainer: {
         flexDirection: "row",
         marginBottom: 15,
-        marginRight: 15,
+        marginHorizontal: 15,
         alignItems: "center",
-        paddingVertical: 5,
-        marginLeft: 15,
+        paddingVertical: 10,
         borderWidth: 1,
         borderRadius: 15,
         backgroundColor: "#FFFFFF",
-        borderColor: '#ffffff',
+        borderColor: "#f0f0f0",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
-
     verticalImage: {
         width: 80,
         height: 80,
         borderRadius: 12,
         marginRight: 12,
-        marginLeft: 10,
     },
-
     verticalText: {
         flex: 1,
-        fontFamily: 'Raleway-Regular',
+        fontFamily: "Raleway-Regular",
     },
-
-    // Titles
-    title: {
-        fontWeight: "bold",
-    },
-
     verticalTitle: {
         fontSize: 16,
         color: "#000",
-        fontFamily: 'Raleway-SemiBold',
+        fontFamily: "Raleway-SemiBold",
     },
-
-    // Metadata
     metadata: {
         flexDirection: "row",
         alignItems: "center",
@@ -126,18 +91,19 @@ const styles = StyleSheet.create({
     author: {
         fontSize: 14,
         color: "#666",
-        fontFamily: 'Raleway-Regular',
+        fontFamily: "Raleway-Regular",
     },
     dot: {
         width: 4,
         height: 4,
         borderRadius: 2,
         backgroundColor: "#666",
-        marginHorizontal: 8,
+        marginHorizontal: 6,
     },
     readTime: {
         fontSize: 14,
         color: "#666",
-        fontFamily: 'Raleway-Regular',
+        fontFamily: "Raleway-Regular",
     },
 });
+

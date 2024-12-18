@@ -1,4 +1,4 @@
-// components/BlogPost.tsx
+// components/BlogPostVertical.tsx
 
 import React from "react";
 import {
@@ -6,34 +6,28 @@ import {
     Text,
     StyleSheet,
     Image,
-    TouchableOpacity,
-    useColorScheme,
 } from "react-native";
 
 export interface BlogPostType {
-    id: number;
     title: string;
     content: string;
-    imageUrl?: string; // Optional image URL
-    category: string;
+    imageUrl?: string;
     author: string;
     readTime: string;
 }
 
 interface BlogPostProps {
     post: BlogPostType;
+    onPress?: () => void;
 }
 
 const BlogPostVertical: React.FC<BlogPostProps> = ({ post }) => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === "dark";
-
     // Fallback image URL
     const fallbackImageUrl =
         "https://via.placeholder.com/600x400.png?text=No+Image+Available";
 
     return (
-        <TouchableOpacity style={[styles.container]}>
+        <View style={styles.container}>
             {/* Blog Image */}
             <Image
                 source={{ uri: post.imageUrl || fallbackImageUrl }}
@@ -47,9 +41,11 @@ const BlogPostVertical: React.FC<BlogPostProps> = ({ post }) => {
                 </Text>
                 <View style={styles.overlayMetadata}>
                     <Text style={styles.author}>{post.author}</Text>
+                    <View style={styles.dot} />
+                    <Text style={styles.readTime}>{post.readTime}</Text>
                 </View>
             </View>
-        </TouchableOpacity>
+        </View>
     );
 };
 
@@ -60,7 +56,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: "hidden",
         margin: 15,
-        width: 180, // Matches the card width
+        width: 180,
     },
     image: {
         width: "100%",
@@ -79,7 +75,7 @@ const styles = StyleSheet.create({
     overlayTitle: {
         fontSize: 14,
         fontWeight: "bold",
-        fontFamily: 'Raleway-SemiBold',
+        fontFamily: "Raleway-SemiBold",
         color: "#fff",
         marginBottom: 4,
     },
@@ -90,5 +86,19 @@ const styles = StyleSheet.create({
     author: {
         fontSize: 12,
         color: "#fff",
+        fontFamily: "Raleway-Regular",
+    },
+    dot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#fff",
+        marginHorizontal: 6,
+    },
+    readTime: {
+        fontSize: 12,
+        color: "#fff",
+        fontFamily: "Raleway-Regular",
     },
 });
+
