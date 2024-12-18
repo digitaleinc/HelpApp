@@ -1,55 +1,69 @@
 // app/(tabs)/tickets.tsx
 
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-
-import React, {useContext, useEffect} from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { AuthContext } from '@/contexts/AuthContext';
-import Ticket from '@/components/Ticket';
-import CreateNewTicketButton from '@/components/CreateNewTicketButton';
-import { useRouter } from 'expo-router';
-import { Request } from '@/data/staticData';
-
-// SplashScreen.preventAutoHideAsync();
+import React, { useContext, useEffect } from "react";
+import {View, Text, FlatList, StyleSheet, TouchableOpacity} from "react-native";
+import { AuthContext } from "@/contexts/AuthContext";
+import Ticket from "@/components/Ticket";
+import CreateNewTicketButton from "@/components/CreateNewTicketButton";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 const TicketsScreen = () => {
-    const [fontsLoaded] = useFonts({
-        'RalewayRegular': require('@/assets/fonts/Raleway-Regular.ttf'),
-        'RalewayBold': require('@/assets/fonts/Raleway-Bold.ttf'),
-    });
-
-    const { user, tickets } = useContext(AuthContext);
+    const { userData, filteredTickets, fetchTickets } = useContext(AuthContext);
     const router = useRouter();
 
-    // Simplified filtering: All users see only 'Active' tickets
-    const filteredRequests: Request[] = tickets.filter((req) => req.status === 'Active');
+    // Fetch tickets on component mount
+    useEffect(() => {
+        fetchTickets();
+    }, []);
 
-    const renderItem = ({ item }: { item: Request }) => <Ticket request={item} />;
+    const handleTicketPress = (ticketId: string) => {
+        router.push({ pathname: "/detailed_ticket", params: { ticketId } });
+    };
+
+    // Function to render each ticket
+    const renderItem = ({ item }: { item: any }) => {
+        return (
+            <TouchableOpacity
+                onPress={() => handleTicketPress(item.id)}
+                activeOpacity={0.8}
+            >
+                <Ticket
+                    request={item}
+                    showHelpButton={
+                        ["ReadyToHelp", "Moderator", "Admin"].includes(userData?.accountType || "") &&
+                        item.status === "Active"
+                    }
+                    showAdminControls={["Moderator", "Admin"].includes(userData?.accountType || "")}
+                />
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>
-            <Text style={{
-                fontSize: 24,
-                fontFamily: 'RalewayBold',
-                justifyContent: 'center',
-                alignItems: 'center',
+            <SafeAreaView style={{ flex: 1 }}>
+                <Text style={styles.title}>Help Requests</Text>
 
-                margin: 15
-            }}>Active help requests</Text>
-            <FlatList
-                data={filteredRequests}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderItem}
-                ListEmptyComponent={
-                    <Text style={styles.noRequestsText}>There's no active requests yet</Text>
-                }
-            />
-            <CreateNewTicketButton
-                title="Create New Ticket"
-                onPress={() => router.push('/new-ticket')}
-                style={styles.button}
-            />
+                {/* Ticket List */}
+                <FlatList
+                    data={filteredTickets}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    ListEmptyComponent={
+                        <Text style={styles.noRequestsText}>No tickets available at the moment.</Text>
+                    }
+                />
+
+                {/* Create Ticket Button for HelpSeekers */}
+                {(userData?.accountType === "HelpSeeker" || userData?.accountType === "Moderator" || userData?.accountType === "Admin") && (
+                    <CreateNewTicketButton
+                        title="Create New Ticket"
+                        onPress={() => router.push("../new-ticket")}
+                        style={styles.button}
+                    />
+                )}
+            </SafeAreaView>
         </View>
     );
 };
@@ -59,16 +73,19 @@ export default TicketsScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: "#FFFFFF",
         paddingHorizontal: 20,
     },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginVertical: 10,
+        textAlign: "center",
+    },
     noRequestsText: {
-        fontFamily: 'RalewayBold',
         fontSize: 18,
-        color: '#555',
-        textAlign: 'center',
+        color: "#555",
+        textAlign: "center",
         marginTop: 20,
     },
     button: {
@@ -77,3 +94,4 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 0, height: 2},
     },
 });
+

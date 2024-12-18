@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     overlayTitle: {
         fontSize: 14,
         fontWeight: "bold",
+        fontFamily: 'Raleway-SemiBold',
         color: "#fff",
         marginBottom: 4,
     },

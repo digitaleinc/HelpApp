@@ -10,6 +10,7 @@ import {
     useColorScheme,
 } from "react-native";
 import {Colors} from "@/constants/Colors";
+import { useFonts } from 'expo-font';
 
 export interface BlogPostType {
     id: number;
@@ -27,6 +28,12 @@ interface BlogPostProps {
 }
 
 const BlogPostSmall: React.FC<BlogPostProps> = ({ post }) => {
+    useFonts({
+        'Raleway-Bold': require('@/assets/fonts/Raleway-Bold.ttf'),
+        'Raleway-SemiBold': require('@/assets/fonts/Raleway-SemiBold.ttf'),
+        'Raleway-Regular': require('@/assets/fonts/Raleway-Regular.ttf'),
+        // 'Roboto-Bold': require('./assets/fonts/Roboto-Bold.ttf'),
+    });
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === "dark";
 
@@ -96,6 +103,7 @@ const styles = StyleSheet.create({
 
     verticalText: {
         flex: 1,
+        fontFamily: 'Raleway-Regular',
     },
 
     // Titles
@@ -106,6 +114,7 @@ const styles = StyleSheet.create({
     verticalTitle: {
         fontSize: 16,
         color: "#000",
+        fontFamily: 'Raleway-SemiBold',
     },
 
     // Metadata
@@ -117,6 +126,7 @@ const styles = StyleSheet.create({
     author: {
         fontSize: 14,
         color: "#666",
+        fontFamily: 'Raleway-Regular',
     },
     dot: {
         width: 4,
@@ -128,5 +138,6 @@ const styles = StyleSheet.create({
     readTime: {
         fontSize: 14,
         color: "#666",
+        fontFamily: 'Raleway-Regular',
     },
 });

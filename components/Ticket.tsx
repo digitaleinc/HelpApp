@@ -1,31 +1,43 @@
 // components/Ticket.tsx
 
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import AssignHelpButton from '@/components/AssignHelpButton';
-import { Request } from '@/data/staticData';
-import { AuthContext } from '@/contexts/AuthContext';
-import { useRouter } from 'expo-router';
+import React, { useContext } from "react";
+import { View, Text, StyleSheet, Alert, Button } from "react-native";
+import { AuthContext } from "@/contexts/AuthContext";
+import AssignHelpButton from "@/components/AssignHelpButton";
+
+interface Request {
+    id: string;
+    title: string;
+    description: string;
+    userId: string;
+    helperId?: string;
+    status: "Active" | "Completed" | "In Progress";
+    createdAt: number;
+}
 
 interface TicketProps {
     request: Request;
+    showHelpButton: boolean;
+    showAdminControls: boolean;
 }
 
-const Ticket: React.FC<TicketProps> = ({ request }) => {
+const Ticket: React.FC<TicketProps> = ({ request, showHelpButton }) => {
     const { user, updateTicket } = useContext(AuthContext);
-    const router = useRouter();
 
+    // Utility function for truncating text
+    const truncateText = (text: string, maxLength: number) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+    };
+
+    // Handle assigning help to a request
     const handleAssignHelp = () => {
         Alert.alert(
-            'Confirm Help',
-            'Are you sure you could help with this request?',
+            "Confirm Help",
+            "Are you sure you want to help with this request?",
             [
+                { text: "Cancel", style: "cancel" },
                 {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes, Help',
+                    text: "Yes, Help",
                     onPress: () => assignHelp(),
                 },
             ],
@@ -34,38 +46,50 @@ const Ticket: React.FC<TicketProps> = ({ request }) => {
     };
 
     const assignHelp = () => {
-        if (!user) {
-            Alert.alert('Error', 'You must be logged in to help with this request.');
-            return;
-        }
-
-        const updatedTicket: Request = {
+        if (!user) return Alert.alert("Error", "You must be logged in to help.");
+        updateTicket({
             ...request,
-            status: 'In progress',
-            helperId: user.id,
-        };
-
-        updateTicket(updatedTicket);
-        Alert.alert('Success', 'You have been assigned to this request.');
-        // Optionally, navigate to history or refresh the list
+            status: "In Progress",
+            helperId: user.uid,
+        });
     };
 
-    // Determine if the button should be displayed
-    const canAssignHelp =
-        user?.accountType === 'ReadyToHelp' ||
-        user?.accountType === 'Moderator' ||
-        user?.accountType === 'Admin';
+    // const handleEdit = () => {
+    //     Alert.alert("Edit", "Editing is under development.");
+    // };
+    //
+    // const handleDelete = () => {
+    //     Alert.alert("Delete", "Deleting is under development.");
+    // };
 
     return (
-        <View style={styles.container}>
+        <View
+            style={styles.card}
+        >
+            {/* Content Section */}
             <View style={styles.textContainer}>
-                <Text style={styles.title}>{request.title}</Text>
-                <Text style={styles.description}>{request.description}</Text>
+                <Text style={styles.title}>{truncateText(request.title, 25)}</Text>
+                <Text style={styles.description}>
+                    {truncateText(request.description, 80)}
+                </Text>
+
                 <Text style={styles.status}>Status: {request.status}</Text>
             </View>
-            {canAssignHelp && request.status === 'Active' && (
-                <AssignHelpButton onPress={handleAssignHelp} />
+
+            {/* Help Button */}
+            {showHelpButton && request.status === "Active" && (
+                <View style={styles.buttonContainer}>
+                    <AssignHelpButton onPress={handleAssignHelp} />
+                </View>
             )}
+
+            {/* Admin Controls */}
+            {/*{showAdminControls && (*/}
+            {/*    <View style={styles.adminButtons}>*/}
+            {/*        <Button title="Edit" onPress={handleEdit} color="#1976D2" />*/}
+            {/*        <Button title="Delete" onPress={handleDelete} color="#D32F2F" />*/}
+            {/*    </View>*/}
+            {/*)}*/}
         </View>
     );
 };
@@ -73,40 +97,44 @@ const Ticket: React.FC<TicketProps> = ({ request }) => {
 export default Ticket;
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
+    card: {
+        backgroundColor: "#ffffff",
         padding: 15,
-        borderWidth: 0.3,
-        borderColor: '#ccc',
-        borderRadius: 15,
-        marginBottom: 10,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        // Shadow for iOS
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        borderRadius: 12,
+        marginVertical: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 1.41,
-        // Elevation for Android
-        elevation: 2,
+        shadowRadius: 5,
+        elevation: 5,
     },
     textContainer: {
-        flex: 1, // Takes up remaining space
-        paddingRight: 10, // Space between text and button
+        marginBottom: 10,
     },
     title: {
-        fontSize: 16,
-        fontWeight: '700',
-        marginBottom: 4,
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#333",
     },
     description: {
         fontSize: 14,
-        color: '#555',
-        marginBottom: 6,
+        color: "#555",
+        marginTop: 4,
+        lineHeight: 20,
     },
     status: {
         fontSize: 12,
-        color: '#999',
-        fontStyle: 'italic',
+        color: "#888",
+        marginTop: 6,
+        fontStyle: "italic",
+    },
+    buttonContainer: {
+        alignSelf: "center",
+    },
+    adminButtons: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        marginTop: 10,
     },
 });
+

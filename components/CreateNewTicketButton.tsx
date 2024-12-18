@@ -22,13 +22,13 @@ interface HelpButtonProps {
 }
 
 const CreateNewTicketButton: React.FC<HelpButtonProps> = ({
-                                                   onPress,
-                                                   title = 'Help',
-                                                   style,
-                                                   textStyle,
-                                                   loading = false,
-                                                   disabled = false,
-                                               }) => {
+                                                              onPress,
+                                                              title = 'Help',
+                                                              style,
+                                                              textStyle,
+                                                              loading = false,
+                                                              disabled = false,
+                                                          }) => {
     return (
         <TouchableOpacity
             style={[styles.button, style, disabled && styles.disabled]}

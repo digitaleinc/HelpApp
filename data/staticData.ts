@@ -106,7 +106,7 @@ export const blogPosts: BlogPost[] = [
         id: 7,
         title: "Можливості для працевлаштування людей з інвалідністю",
         content: "Дізнайтеся про програми та ініціативи, які сприяють працевлаштуванню.",
-        imageUrl: "https://naiu.org.ua/wp-content/uploads/2016/12/1441789011.jpg",
+        // imageUrl: "https://naiu.org.ua/wp-content/uploads/2016/12/1441789011.jpg",
         category: "Топ",
         author: "Іван",
         readTime: "6 хв",
@@ -123,7 +123,7 @@ export const blogPosts: BlogPost[] = [
         id: 9,
         title: "Мережі підтримки для сімей людей з інвалідністю",
         content: "Корисні ресурси та контакти для родин, які доглядають за людьми з обмеженими можливостями.",
-        imageUrl: "https://images.unsplash.com/photo-1597764698132-dc8f8e298c2e",
+        // imageUrl: "https://images.unsplash.com/photo-1597764698132-dc8f8e298c2e",
         category: "Популярне",
         author: "Катерина",
         readTime: "7 хв",
@@ -132,39 +132,9 @@ export const blogPosts: BlogPost[] = [
         id: 10,
         title: "Історії волонтерів: допомога Україні через благодійність",
         content: "Натхненні історії людей, які змінюють світ на краще.",
-        imageUrl: "https://images.unsplash.com/photo-1598970434795-0c54fe7c0646",
+        // imageUrl: "https://images.unsplash.com/photo-1598970434795-0c54fe7c0646",
         category: "Рекомендації",
         author: "Андрій",
         readTime: "5 хв",
     },
-];
-
-
-// Sample requests
-export interface Request {
-    id: number;
-    title: string;
-    description: string;
-    userId: number; // ID of HelpSeeker
-    helperId?: number; // ID of ReadyToHelp
-    status: 'Active' | 'Completed' | 'In progress';
-}
-
-export const requests: Request[] = [
-    {
-        id: 1,
-        title: 'Need Assistance with Grocery Shopping',
-        description: 'I need help purchasing groceries...',
-        userId: 1,
-        status: 'Active',
-    },
-    {
-        id: 2,
-        title: 'Help Moving Furniture',
-        description: 'Assistance needed to move furniture...',
-        userId: 1,
-        helperId: 2,
-        status: 'Completed',
-    },
-    // Add more requests as needed
 ];

@@ -1,172 +1,222 @@
 // contexts/AuthContext.tsx
 
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import {User, Request, BlogPost, testUsers, blogPosts} from '@/data/staticData';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import BlogPostSmall from "@/components/BlogPostSmall";
+import React, { createContext, useState, ReactNode, useEffect } from "react";
+import { auth, database } from "@/firebaseConfig";
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    User as FirebaseUser,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+} from "firebase/auth";
+import { ref, get, set, push, onValue, update, remove } from "firebase/database";
+import * as Notifications from "expo-notifications";
+
+// Types
+interface Request {
+    id: string;
+    title: string;
+    description: string;
+    userId: string;
+    helperId?: string;
+    status: "Active" | "Completed" | "In Progress";
+    createdAt: number;
+    helperEmail?: string;
+    requesterEmail?: string;
+}
+
+interface UserData {
+    email: string;
+    accountType?: string;
+}
 
 interface AuthContextProps {
-    user: User | null;
-    login: (username: string, password: string) => boolean;
-    logout: () => void;
-    signup: (
-        username: string,
-        password: string,
-        accountType: 'HelpSeeker' | 'ReadyToHelp'
-    ) => boolean;
+    user: FirebaseUser | null;
+    userData: UserData | null;
+    usersData: Record<string, UserData>;
     tickets: Request[];
-    addTicket: (title: string, description: string) => void;
-    updateTicket: (updatedTicket: Request) => void;
-    blogPosts: BlogPost[];
-    addBlogPost: (title: string, content: string) => void;
+    filteredTickets: Request[];
+    fetchTickets: () => void;
+    login: (email: string, password: string) => Promise<boolean>;
+    logout: () => Promise<void>;
+    signup: (email: string, password: string, accountType: string) => Promise<boolean>;
+    addTicket: (title: string, description: string) => Promise<void>;
+    updateTicket: (updatedTicket: Request) => Promise<void>;
+    deleteTicket: (ticketId: string) => Promise<void>;
+    changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+    loading: boolean;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
     user: null,
-    login: () => false,
-    logout: () => {},
-    signup: () => false,
+    userData: null,
+    usersData: {},
     tickets: [],
-    addTicket: () => {},
-    updateTicket: () => {},
-    blogPosts: [],
-    addBlogPost: () => {},
+    filteredTickets: [],
+    fetchTickets: () => {},
+    login: async () => false,
+    logout: async () => {},
+    signup: async () => false,
+    addTicket: async () => {},
+    updateTicket: async () => {},
+    deleteTicket: async () => {},
+    changePassword: async () => false,
+    loading: true,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<FirebaseUser | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [usersData, setUsersData] = useState<Record<string, UserData>>({});
     const [tickets, setTickets] = useState<Request[]>([]);
-    const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+    const [filteredTickets, setFilteredTickets] = useState<Request[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
+    // Monitor Authentication State
     useEffect(() => {
-        // Load user and data from AsyncStorage on mount
-        const loadData = async () => {
-            try {
-                const userData = await AsyncStorage.getItem('user');
-                const ticketsData = await AsyncStorage.getItem('tickets');
-                const blogPostsData = await AsyncStorage.getItem('blogPosts');
-
-                if (userData) {
-                    setUser(JSON.parse(userData));
-                }
-
-                if (ticketsData) {
-                    setTickets(JSON.parse(ticketsData));
-                }
-                // else {
-                //                     setTickets(initialRequests); // Initialize with default data if available
-                //                 }
-
-                if (blogPostsData) {
-                    setBlogPosts(JSON.parse(blogPostsData));
-                }
-                // else {
-                //                     setBlogPosts(initialBlogPosts); // Initialize with default data if available
-                //                 }
-            } catch (error) {
-                console.error('Failed to load data:', error);
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                const userRef = ref(database, `users/${currentUser.uid}`);
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) setUserData(snapshot.val());
+                await fetchAllUsers();
+                fetchTickets();
+            } else {
+                setUserData(null);
+                setUsersData({});
+                setTickets([]);
+                setFilteredTickets([]);
             }
-        };
-
-        loadData();
+            setLoading(false);
+        });
+        return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        // Save user and data to AsyncStorage whenever they change
-        const saveData = async () => {
-            try {
-                if (user) {
-                    await AsyncStorage.setItem('user', JSON.stringify(user));
-                } else {
-                    await AsyncStorage.removeItem('user');
-                }
-                await AsyncStorage.setItem('tickets', JSON.stringify(tickets));
-                await AsyncStorage.setItem('blogPosts', JSON.stringify(blogPosts));
-            } catch (error) {
-                console.error('Failed to save data:', error);
-            }
-        };
+    // Fetch all users to map userId to email
+    const fetchAllUsers = async () => {
+        const usersRef = ref(database, "users");
+        const snapshot = await get(usersRef);
+        if (snapshot.exists()) setUsersData(snapshot.val());
+    };
 
-        saveData();
-    }, [user, tickets, blogPosts]);
+    // Fetch tickets
+    const fetchTickets = () => {
+        const ticketsRef = ref(database, "tickets");
+        onValue(ticketsRef, (snapshot) => {
+            const data = snapshot.val();
+            const allTickets: Request[] = data
+                ? Object.entries(data).map(([id, value]) => {
+                    const ticket = value as Partial<Request>; // Type assertion for safety
 
-    const login = (username: string, password: string): boolean => {
-        const foundUser = testUsers.find(
-            (u) => u.username === username && u.password === password
-        );
-        if (foundUser) {
-            setUser(foundUser);
+                    return {
+                        id,
+                        title: ticket.title || "Untitled", // Fallback to default if missing
+                        description: ticket.description || "No description provided.",
+                        userId: ticket.userId || "Unknown User",
+                        helperId: ticket.helperId,
+                        status: ticket.status || "Active",
+                        createdAt: ticket.createdAt || Date.now(),
+                        requesterEmail: usersData[ticket.userId!]?.email || "Unknown",
+                        helperEmail:
+                            ticket.helperId && usersData[ticket.helperId]?.email
+                                ? usersData[ticket.helperId]?.email
+                                : "Not Assigned",
+                    };
+                })
+                : [];
+
+            setTickets(allTickets);
+            filterTickets(allTickets);
+        });
+    };
+
+    // Filter tickets based on role
+    const filterTickets = (allTickets: Request[]) => {
+        if (!userData?.accountType) return;
+
+        if (["Moderator", "Admin"].includes(userData.accountType)) {
+            setFilteredTickets(allTickets.filter((t) => t.status === "Active"));
+        } else if (userData.accountType === "HelpSeeker") {
+            setFilteredTickets(allTickets.filter((t) => t.userId === user?.uid && t.status === "Active"));
+        } else if (userData.accountType === "ReadyToHelp") {
+            setFilteredTickets(allTickets.filter((t) => t.status === "Active"));
+        }
+    };
+
+    // Update a ticket
+    const updateTicket = async (updatedTicket: Request) => {
+        await update(ref(database, `tickets/${updatedTicket.id}`), updatedTicket);
+        fetchTickets();
+    };
+
+    // Delete a ticket
+    const deleteTicket = async (ticketId: string) => {
+        await remove(ref(database, `tickets/${ticketId}`));
+        fetchTickets();
+    };
+
+    // Add new ticket
+    const addTicket = async (title: string, description: string) => {
+        if (user) {
+            const newTicketRef = push(ref(database, "tickets"));
+            await set(newTicketRef, {
+                title,
+                description,
+                userId: user.uid,
+                status: "Active",
+                createdAt: Date.now(),
+            });
+        }
+    };
+
+    // Change Password
+    const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+        if (user && user.email) {
+            const credential = EmailAuthProvider.credential(user.email, currentPassword);
+            await reauthenticateWithCredential(user, credential);
+            await updatePassword(user, newPassword);
             return true;
         }
         return false;
     };
 
-    const logout = () => {
-        setUser(null);
-    };
-
-    const signup = (
-        username: string,
-        password: string,
-        accountType: 'HelpSeeker' | 'ReadyToHelp'
-    ): boolean => {
-        const exists = testUsers.some((u) => u.username === username);
-        if (exists) {
-            return false;
-        }
-        const newUser: User = {
-            id: testUsers.length + 1,
-            username,
-            password,
-            accountType: accountType === 'HelpSeeker' ? 'HelpSeeker' : 'ReadyToHelp',
-        };
-        testUsers.push(newUser);
-        setUser(newUser);
+    // Login, Signup, Logout
+    const login = async (email: string, password: string) => {
+        await signInWithEmailAndPassword(auth, email, password);
         return true;
     };
 
-    const addTicket = (title: string, description: string) => {
-        const newTicket: Request = {
-            id: tickets.length + 1,
-            title,
-            description,
-            userId: user?.id || 0,
-            status: 'Active',
-        };
-        setTickets([...tickets, newTicket]);
+    const signup = async (email: string, password: string, accountType: string) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await set(ref(database, `users/${userCredential.user.uid}`), { email, accountType });
+        return true;
     };
 
-    const updateTicket = (updatedTicket: Request) => {
-        setTickets((prevTickets) =>
-            prevTickets.map((ticket) =>
-                ticket.id === updatedTicket.id ? updatedTicket : ticket
-            )
-        );
-    };
-
-    const addBlogPost = (title: string, content: string) => {
-        const newPost: BlogPost = {
-            id: blogPosts.length + 1,
-            title,
-            content,
-            author: "testUser",
-            readTime: "5 хв",
-        };
-        setBlogPosts([...blogPosts, newPost]);
+    const logout = async () => {
+        await signOut(auth);
     };
 
     return (
         <AuthContext.Provider
             value={{
                 user,
+                userData,
+                usersData,
+                tickets,
+                filteredTickets,
+                fetchTickets,
                 login,
                 logout,
                 signup,
-                tickets,
                 addTicket,
                 updateTicket,
-                blogPosts,
-                addBlogPost,
+                deleteTicket,
+                changePassword,
+                loading,
             }}
         >
             {children}
