@@ -18,14 +18,14 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="tickets"
                 options={{
-                    title: 'Tickets',
+                    title: 'Requests',
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons name={focused ? 'ticket' : 'ticket-outline'} color={color} size={24} />
+                        <Ionicons name={focused ? 'file-tray' : 'file-tray-outline'} color={color} size={24} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="history"ф
+                name="history"
                 options={{
                     title: 'History',
                     tabBarIcon: ({ color, focused }) => (

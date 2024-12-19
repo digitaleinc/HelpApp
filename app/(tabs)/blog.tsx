@@ -3,7 +3,6 @@ import {
     FlatList,
     Text,
     StyleSheet,
-    View,
     TouchableOpacity,
     ImageBackground,
     Alert,
@@ -55,8 +54,8 @@ const BlogScreen = () => {
                 ListHeaderComponent={
                     <>
                         {/* Header */}
-                        <Text style={styles.header}>Добірка корисних статей</Text>
-                        <Text style={styles.subHeader}>Рекомендуємо</Text>
+                        <Text style={styles.header}>Discover our blog</Text>
+                        <Text style={styles.subHeader}>Recommended</Text>
 
                         {/* Horizontal Scroll for Recommended Posts */}
                         <FlatList
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
     header: {
         fontFamily: "Raleway-Bold",
         fontSize: 34,
-        fontWeight: "bold",
+        fontWeight: "600",
         color: "#302b13",
         marginBottom: 8,
         marginTop: 20,

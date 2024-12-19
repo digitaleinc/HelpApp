@@ -1,4 +1,4 @@
-// app/(tabs)/new-blog.tsx
+// app/new-blog.tsx
 
 import React, { useState, useContext, useEffect } from 'react';
 import { Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';

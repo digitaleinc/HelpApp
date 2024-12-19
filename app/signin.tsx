@@ -7,12 +7,12 @@ import { useRouter } from "expo-router";
 
 const LoginScreen = () => {
     const router = useRouter();
-    const { login } = useContext(AuthContext); // Access login function from AuthContext
+    const { login } = useContext(AuthContext);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleLogin = async () => {
-        const success = await login(email, password); // Call login function
+        const success = await login(email, password);
         if (!success) {
             Alert.alert("Error", "Invalid email or password");
         } else {

@@ -14,15 +14,13 @@ import {
 } from "firebase/auth";
 import { ref, get, set, push, onValue, update, remove } from "firebase/database";
 
-// Utility function to calculate read time
 const calculateReadTime = (text: string): string => {
-    const wordsPerMinute = 100; // Average reading speed
+    const wordsPerMinute = 100;
     const words = text.trim().split(/\s+/).length;
     const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} min`; // Ukrainian for "minutes"
+    return `${minutes} min`;
 };
 
-// Types
 interface Request {
     id: string;
     title: string;
@@ -195,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Add new blog post
     const addBlogPost = async (blogPost: Omit<BlogPost, "id" | "readTime">) => {
-        const readTime = calculateReadTime(blogPost.content); // Calculate read time
+        const readTime = calculateReadTime(blogPost.content);
         const newBlogPost = { ...blogPost, readTime };
         const blogPostRef = push(ref(database, "blogPosts"));
         await set(blogPostRef, newBlogPost);
