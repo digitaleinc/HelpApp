@@ -1,7 +1,7 @@
 // components/Ticket.tsx
 
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Alert, Button } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { AuthContext } from "@/contexts/AuthContext";
 import AssignHelpButton from "@/components/AssignHelpButton";
 
